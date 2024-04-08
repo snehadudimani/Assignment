@@ -1,0 +1,28 @@
+import urllib.request
+import re
+import json
+
+def extract_lateststories(url):
+    try:
+        response = urllib.request.urlopen(url)
+        html_content = response.read().decode('utf-8')
+        pattern = r'<a href="(https:\/\/time\.com\/\d+\/[^"]+)">(.*?)<\/a>'
+        matches = re.findall(pattern, html_content)
+        stories = []
+        for match in matches[:6]:
+            title = match[1]
+            link = match[0]
+            stories.append({'title': title, 'link': link})
+        
+        return stories
+    except Exception as e:
+        print("An error occurred:", str(e))
+
+if __name__ == "__main__":
+    url = "https://time.com"
+    latest_stories = extract_lateststories(url)
+    if latest_stories:
+        json_data = json.dumps(latest_stories, indent=4)
+        print(json_data)
+    else:
+        print("No stories found.")
