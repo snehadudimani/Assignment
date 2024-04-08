@@ -1,0 +1,59 @@
+import urllib.request
+
+def get_latest_stories(html_content):
+    # Find the starting and ending index of the latest stories section
+    start_marker = '<section class="homepage-module latest">'
+    end_marker = '</section>'
+    start_index = html_content.find(start_marker)
+    end_index = html_content.find(end_marker, start_index)
+
+    if start_index != -1 and end_index != -1:
+        # Extract the latest stories section
+        latest_stories_section = html_content[start_index:end_index]
+
+        # Find all story links and titles
+        story_marker = '<a href="'
+        story_links = []
+        story_titles = []
+        start_index = 0
+        while True:
+            start_index = latest_stories_section.find(story_marker, start_index)
+            if start_index == -1:
+                break
+            end_index = latest_stories_section.find('"', start_index + len(story_marker) + 1)
+            story_links.append(latest_stories_section[start_index + len(story_marker):end_index])
+            title_start_index = latest_stories_section.find('>', end_index) + 1
+            title_end_index = latest_stories_section.find('</a>', title_start_index)
+            story_titles.append(latest_stories_section[title_start_index:title_end_index])
+            start_index = title_end_index
+
+        # Limit the number of stories to the latest 6
+        latest_stories = list(zip(story_titles[:6], story_links[:6]))
+        return latest_stories
+    else:
+        print("Latest stories section not found.")
+        return []
+
+def fetch_html_content(url):
+    try:
+        # Fetch the HTML content of the Time.com homepage
+        response = urllib.request.urlopen(url)
+        html_content = response.read().decode('utf-8')
+        return html_content
+    except Exception as e:
+        print("An error occurred:", e)
+        return None
+
+def get_time_stories():
+    url = 'https://time.com'
+    html_content = fetch_html_content(url)
+    if html_content:
+        latest_stories = get_latest_stories(html_content)
+        return latest_stories
+    else:
+        return []
+
+# Test the function
+if __name__ == "__main__":
+    latest_stories = get_time_stories()
+    print(latest_stories)
